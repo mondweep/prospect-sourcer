@@ -1,0 +1,22 @@
+# Environment variables
+.env
+
+# Temporary files
+temp_map_result.html
+
+# Images/Screenshots
+src/*.png
+
+# VS Code specific
+src/*.code-workspace
+.vscode/
+
+# Node dependencies
+node_modules/
+
+# Build outputs
+dist/
+build/
+
+# Deno lock file (optional, depends on project preference)
+# deno.lock

@@ -1,0 +1,10 @@
+{
+  "tasks": {
+    "start": "deno run --unstable-detect-cjs --unstable-ffi --allow-net --allow-env --allow-read --allow-write src/main.ts",
+    "dev": "deno run --watch --unstable-detect-cjs --unstable-ffi --allow-net --allow-env --allow-read --allow-write src/main.ts"
+  },
+  "importMap": "import_map.json",
+  "compilerOptions": {
+    "lib": ["deno.window"]
+  }
+}

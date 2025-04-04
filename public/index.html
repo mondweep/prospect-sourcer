@@ -1,0 +1,41 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Google Maps Lead Scraper</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <h1>Google Maps Lead Scraper</h1>
+
+    <form id="scrape-form">
+        <div class="form-group">
+            <label for="business-type">Business Type:</label>
+            <input type="text" id="business-type" name="businessType" placeholder="e.g., Coffee Shops" required>
+        </div>
+
+        <div class="form-group">
+            <label for="location">Broad Location:</label>
+            <input type="text" id="location" name="location" placeholder="e.g., Manhattan, New York" required>
+        </div>
+
+        <div class="form-group">
+            <label for="sheet-id">Google Sheet ID:</label>
+            <input type="text" id="sheet-id" name="sheetId" placeholder="Enter the ID of your Google Sheet" required>
+            <small>Find the ID in the Sheet URL: docs.google.com/spreadsheets/d/<SHEET_ID>/edit</small>
+        </div>
+
+        <!-- ScrapingBee Key input removed -->
+
+        <button type="submit" id="submit-button">Start Scraping</button>
+    </form>
+
+    <div id="status-area">
+        <h2>Status</h2>
+        <pre id="status-log">Waiting for input...</pre>
+    </div>
+
+    <script src="script.js"></script>
+</body>
+</html>

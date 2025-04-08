@@ -60,6 +60,50 @@ This project is a Deno-based web application designed to scrape Google Maps for 
 4.  Fill in the form and click "Start Scraping".
 5.  Monitor the terminal for progress logs and the frontend for status updates.
 
+## Running with Docker
+
+This application can also be run inside a Docker container. This is recommended for deployment as it isolates the application and manages dependencies. Authentication uses a Google Service Account key passed via an environment variable.
+
+**Prerequisites for Docker:**
+
+*   **Docker:** Ensure Docker is installed and running. [https://www.docker.com/](https://www.docker.com/)
+*   **Google Service Account:** Create a Service Account in your Google Cloud project.
+    *   Enable the Google Sheets API for the project.
+    *   Grant the Service Account appropriate permissions to edit the target Google Sheets (e.g., Editor role on the specific sheet or folder).
+    *   Download the Service Account key file (JSON format). **Keep this file secure!**
+*   **Google Gemini API Key:** Obtain an API key for the Gemini API.
+
+**Steps:**
+
+1.  **Build the Docker Image:**
+    Navigate to the project root directory in your terminal and run:
+    ```bash
+    docker build -t google-maps-scraper .
+    ```
+
+2.  **Prepare Environment Variables:**
+    *   **`GOOGLE_CREDENTIALS_JSON`:** You need to provide the *entire content* of your downloaded Service Account JSON key file as the value for this environment variable. One way is to read the file content into the variable when running the container (see example below).
+    *   **`GEMINI_API_KEY`:** Your Gemini API key.
+
+3.  **Run the Docker Container:**
+    Replace `YOUR_GEMINI_API_KEY_HERE` with your actual key and `/path/to/your/service-account-key.json` with the actual path to your downloaded key file.
+    ```bash
+    docker run --rm -it \
+      -p 8000:8000 \
+      -e GEMINI_API_KEY="YOUR_GEMINI_API_KEY_HERE" \
+      -e GOOGLE_CREDENTIALS_JSON="$(cat /path/to/your/service-account-key.json)" \
+      --name maps-scraper-app \
+      google-maps-scraper
+    ```
+    *   `--rm`: Automatically remove the container when it exits.
+    *   `-it`: Run in interactive mode with a pseudo-TTY (allows seeing logs).
+    *   `-p 8000:8000`: Map port 8000 on your host to port 8000 in the container.
+    *   `-e VAR="value"`: Set environment variables inside the container.
+    *   `$(cat ...)`: This command substitution reads the content of your key file and passes it as the value for `GOOGLE_CREDENTIALS_JSON`. **Ensure the path is correct.**
+    *   `--name maps-scraper-app`: Assign a name to the container for easier management.
+
+4.  **Access the Application:** Open your web browser and go to `http://localhost:8000`.
+
 ## Current Limitations & Known Issues
 
 *   **Maps Parsing:** Extracting website URLs from Google Maps results currently uses Regex on an internal data structure found in the HTML source. This is **brittle** and likely to break if Google changes its page structure or data format. The selectors used need constant verification.

@@ -28,10 +28,17 @@ function isExcludedDomain(url: string): boolean {
         // Handle potential protocol-relative URLs from regex
         const absoluteUrl = url.startsWith('//') ? `https://${url}` : url;
         const hostname = new URL(absoluteUrl).hostname.toLowerCase();
+
+        // Explicitly exclude Google content/API domains
+        if (hostname.includes('googleusercontent.com') || hostname.includes('googleapis.com')) {
+            return true;
+        }
+
+        // Check against the predefined list
         return excludedUrlDomains.some(domain => hostname === domain || hostname.endsWith('.' + domain));
     } catch (e) {
         console.warn(`Invalid URL encountered during domain check: ${url}`);
-        return true;
+        return true; // Treat invalid URLs as excluded
     }
 }
 
@@ -157,11 +164,33 @@ export async function scrapeBusinessWebsite(url: string): Promise<Partial<Omit<L
             console.log(`Found phone: ${leadData.phone}`);
         }
 
-        // Address (placeholder)
-        if (html.includes("Street") || html.includes("Avenue") || html.includes("Road")) {
-             leadData.address = "[Address Placeholder - Found Keywords]";
-             console.log(`Found potential address keywords.`);
+        // Address (Improved Regex - Best Effort)
+        // This regex looks for common patterns like number + street name, town/city, postcode (UK focus)
+        // It tries to capture a multi-line address block if possible, or single lines.
+        // It's complex and might need refinement based on common website structures.
+        // We'll extract the *first* plausible match found in the visible text.
+        const addressRegex = /(\d{1,4}\s+[A-Za-z\s]+(?:Street|St|Road|Rd|Avenue|Ave|Lane|Ln)[.,]?\s*[A-Za-z\s]+(?:[.,]?\s*[A-Za-z\s]+){0,2}[.,]?\s*[A-Z]{1,2}\d{1,2}[A-Z]?\s*\d[A-Z]{2})/gi;
+
+        // Basic text extraction (remove tags, scripts, styles) - very rudimentary
+        const textContent = html
+            .replace(/<script[^>]*>.*?<\/script>/gis, '')
+            .replace(/<style[^>]*>.*?<\/style>/gis, '')
+            .replace(/<[^>]+>/g, ' ') // Replace tags with spaces
+            .replace(/\s+/g, ' ') // Collapse multiple whitespace
+            .trim();
+
+        const addressMatch = textContent.match(addressRegex);
+        if (addressMatch && addressMatch[0]) {
+            // Clean up the matched address string
+            leadData.address = addressMatch[0].replace(/\s+/g, ' ').trim();
+            console.log(`Found potential address: ${leadData.address}`);
+        } else {
+             // Fallback: Log if keywords were found but regex failed
+             if (textContent.match(/\b(Street|St|Road|Rd|Avenue|Ave|Lane|Ln|Postcode|Address)\b/i)) {
+                 console.log(`Found address keywords, but regex couldn't extract full address.`);
+             }
         }
+
 
         // Name (from title)
         const titleRegex = /<title>(.*?)<\/title>/i;

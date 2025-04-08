@@ -1,0 +1,35 @@
+# Git specific
+.git
+.gitignore
+
+# Docker specific
+Dockerfile
+.dockerignore
+
+# Environment files
+.env*
+.credentials/
+
+# Node modules (if any were used accidentally)
+node_modules/
+
+# Build artifacts (if any)
+dist/
+build/
+
+# Log files
+*.log
+
+# OS specific
+.DS_Store
+Thumbs.db
+
+# Temporary files
+temp_map_result.html
+
+# VS Code specific (usually not needed in container)
+.vscode/
+*.code-workspace
+
+# Deno lock file (optional - include if you want reproducible deps in image)
+# deno.lock

@@ -1,6 +1,7 @@
 # Use an official Deno image
 # Check https://hub.docker.com/r/denoland/deno for available tags
-FROM denoland/deno:1.42.1
+# Using 'latest' to support newer lockfile versions. Consider pinning to a specific recent version for better reproducibility.
+FROM denoland/deno:latest
 
 # Set working directory
 WORKDIR /app
@@ -28,9 +29,16 @@ COPY public/ ./public/
 # GOOGLE_CREDENTIALS_JSON: The JSON content of the service account key file.
 # (Optional: Add other ENV vars your app might need)
 # ENV PORT=8000 # Example if you want to make port configurable
+# Set DENO_DIR to a path writable by the 'deno' user
+ENV DENO_DIR=/deno/.cache/deno
+
+# Explicitly create DENO_DIR and set ownership before switching user
+# This ensures the directory exists and is writable by the 'deno' user
+RUN mkdir -p $DENO_DIR && chown deno:deno $DENO_DIR
 
 # --- Run the Application ---
 # Command to run the application using the 'start' task defined in deno.jsonc
 # The user needs to be 'deno' for security best practices if not running rootless
+# Switch user *just before* running the final command
 USER deno
 CMD ["deno", "task", "start"]

@@ -5,7 +5,8 @@ import { Application, Router, send } from "oak";
 import { oakCors } from "https://deno.land/x/cors@v1.2.2/mod.ts";
 import { randomDelay, getNeighborhoodsFromGemini } from "./utils.ts"; // Added getNeighborhoodsFromGemini
 import { scrapeMapResults, scrapeBusinessWebsite, Lead } from "./scraper.ts"; // Corrected import
-import { getAuthorizedClient, startAuthFlow, exchangeCodeForToken, REDIRECT_URI } from "./auth.ts";
+// Removed startAuthFlow, exchangeCodeForToken, REDIRECT_URI as Service Account flow is used
+import { getAuthorizedClient } from "./auth.ts";
 import { updateSheet } from "./sheets.ts";
 // import { nycNeighborhoods } from "./data.ts"; // No longer needed if using Gemini
 
@@ -57,24 +58,11 @@ router.post("/api/scrape", async (ctx) => {
 
         console.log("Input validated successfully.");
 
-        // 2. Handle Google Auth
-        console.log("Checking Google Authentication...");
-        let authClient = await getAuthorizedClient();
-
-        if (!authClient) {
-            console.log("Authorization required. Starting auth flow...");
-            const authUrl = startAuthFlow();
-            ctx.response.status = 401; // Unauthorized
-            ctx.response.body = {
-                message: "Authorization required. Please visit the provided URL.",
-                authUrl: authUrl,
-                needsAuth: true
-            };
-            isScraping = false;
-            return;
-        }
-        console.log("Google Authentication successful (using existing/loaded credentials).");
-
+        // 2. Handle Google Auth (Service Account)
+        // getAuthorizedClient now throws if auth fails (e.g., missing env var)
+        console.log("Attempting Google Authentication using Service Account...");
+        const authClient = await getAuthorizedClient();
+        console.log("Google Authentication successful.");
 
         // --- Scraping Logic (New Flow with Gemini) ---
 
@@ -212,26 +200,7 @@ router.post("/api/scrape", async (ctx) => {
     }
 });
 
-// --- OAuth Callback Route ---
-router.get("/oauth2callback", async (ctx) => {
-    const code = ctx.request.url.searchParams.get('code');
-    if (!code) {
-        ctx.response.status = 400;
-        ctx.response.body = "Authorization code missing in callback.";
-        return;
-    }
-
-    console.log("Received OAuth callback code. Exchanging for token...");
-    const authClient = await exchangeCodeForToken(code);
-
-    if (authClient) {
-        console.log("Token exchange successful. Redirecting...");
-        ctx.response.redirect('/');
-    } else {
-        ctx.response.status = 500;
-        ctx.response.body = "Failed to exchange authorization code for token. Check server logs.";
-    }
-});
+// --- OAuth Callback Route Removed (Not needed for Service Account) ---
 
 
 // --- Middleware ---
